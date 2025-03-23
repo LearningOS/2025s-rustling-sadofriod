@@ -13,7 +13,7 @@ struct Wrapper {
 }
 
 impl Wrapper {
-    pub fn new(value: u32) -> Self {
+    pub fn new<T>(value: &T) -> Self {
         Wrapper { value }
     }
 }
