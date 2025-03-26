@@ -28,8 +28,10 @@ use std::error;
 use std::fmt;
 use std::num::ParseIntError;
 
+impl error::Error for CreationError {}
+
 // TODO: update the return type of `main()` to make this compile.
-fn main() -> Result<(), Box<dyn ???>> {
+fn main() -> Result<(), Box<dyn error::Error>> {
     let pretend_user_input = "42";
     let x: i64 = pretend_user_input.parse()?;
     println!("output={:?}", PositiveNonzeroInteger::new(x)?);
@@ -68,4 +70,4 @@ impl fmt::Display for CreationError {
     }
 }
 
-impl error::Error for CreationError {}
+
