@@ -15,6 +15,8 @@ pub trait SomeTrait {
     }
 }
 
+pub trait NewTrait: SomeTrait + OtherTrait {}
+
 pub trait OtherTrait {
     fn other_function(&self) -> bool {
         true
@@ -26,15 +28,17 @@ struct OtherStruct {}
 
 impl SomeTrait for SomeStruct {}
 impl OtherTrait for SomeStruct {}
+impl NewTrait for SomeStruct {}
 impl SomeTrait for OtherStruct {}
 impl OtherTrait for OtherStruct {}
+impl NewTrait for OtherStruct {}
 
 // YOU MAY ONLY CHANGE THE NEXT LINE
-fn some_func(item: ??) -> bool {
+fn some_func(item: &dyn NewTrait) -> bool {
     item.some_function() && item.other_function()
 }
 
 fn main() {
-    some_func(SomeStruct {});
-    some_func(OtherStruct {});
+    some_func(&SomeStruct {});
+    some_func(&OtherStruct {});
 }
