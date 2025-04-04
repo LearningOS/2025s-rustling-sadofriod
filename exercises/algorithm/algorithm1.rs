@@ -71,33 +71,76 @@ impl<T> LinkedList<T> {
     }
 }
 
-impl<T: Ord> LinkedList<T> {
-    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self {
+impl<T: Ord + Clone> LinkedList<T> {
+    pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self {
         let mut result = LinkedList::new();
-        let mut a_ptr = list_a.start;
-        let mut b_ptr = list_b.start;
-
-        while a_ptr.is_some() && b_ptr.is_some() {
-            let a_val = unsafe { &(*a_ptr.unwrap().as_ptr()).val };
-            let b_val = unsafe { &(*b_ptr.unwrap().as_ptr()).val };
+        
+        while list_a.start.is_some() && list_b.start.is_some() {
+            let a_val = unsafe { &(*list_a.start.unwrap().as_ptr()).val };
+            let b_val = unsafe { &(*list_b.start.unwrap().as_ptr()).val };
 
             if a_val <= b_val {
-                result.add(unsafe { (*a_ptr.unwrap().as_ptr()).val.clone() });
-                a_ptr = unsafe { (*a_ptr.unwrap().as_ptr()).next };
+                // Take node from list_a
+                let node = list_a.start;
+                list_a.start = unsafe { (*node.unwrap().as_ptr()).next };
+                list_a.length -= 1;
+                
+                // Add to result
+                match result.end {
+                    None => result.start = node,
+                    Some(end_ptr) => unsafe { (*end_ptr.as_ptr()).next = node },
+                }
+                result.end = node;
+                if let Some(end_ptr) = result.end {
+                    unsafe { (*end_ptr.as_ptr()).next = None };
+                }
             } else {
-                result.add(unsafe { (*b_ptr.unwrap().as_ptr()).val.clone() });
-                b_ptr = unsafe { (*b_ptr.unwrap().as_ptr()).next };
+                // Take node from list_b
+                let node = list_b.start;
+                list_b.start = unsafe { (*node.unwrap().as_ptr()).next };
+                list_b.length -= 1;
+                
+                // Add to result
+                match result.end {
+                    None => result.start = node,
+                    Some(end_ptr) => unsafe { (*end_ptr.as_ptr()).next = node },
+                }
+                result.end = node;
+                if let Some(end_ptr) = result.end {
+                    unsafe { (*end_ptr.as_ptr()).next = None };
+                }
             }
+            result.length += 1;
         }
 
-        while let Some(ptr) = a_ptr {
-            result.add(unsafe { (*ptr.as_ptr()).val.clone() });
-            a_ptr = unsafe { (*ptr.as_ptr()).next };
+        // Handle remaining nodes in list_a
+        if list_a.start.is_some() {
+            match result.end {
+                None => {
+                    result.start = list_a.start;
+                    result.end = list_a.end;
+                }
+                Some(end_ptr) => {
+                    unsafe { (*end_ptr.as_ptr()).next = list_a.start };
+                    result.end = list_a.end;
+                }
+            }
+            result.length += list_a.length;
         }
 
-        while let Some(ptr) = b_ptr {
-            result.add(unsafe { (*ptr.as_ptr()).val.clone() });
-            b_ptr = unsafe { (*ptr.as_ptr()).next };
+        // Handle remaining nodes in list_b
+        if list_b.start.is_some() {
+            match result.end {
+                None => {
+                    result.start = list_b.start;
+                    result.end = list_b.end;
+                }
+                Some(end_ptr) => {
+                    unsafe { (*end_ptr.as_ptr()).next = list_b.start };
+                    result.end = list_b.end;
+                }
+            }
+            result.length += list_b.length;
         }
 
         result
